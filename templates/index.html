@@ -1,0 +1,239 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Resource Allocation Simulator</title>
+
+<!-- libraries -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<style>
+  .g-row{position:relative;height:36px;margin:8px 0}
+  .bar{position:absolute;height:100%;border-radius:6px;padding:0 10px;
+       line-height:36px;font-size:.8rem;color:#fff;white-space:nowrap;overflow:hidden}
+  .blue{background:#3b82f6}.green{background:#10b981}.cp{background:#dc2626}
+  .wk{background:#f3f4f6;color:#9ca3af}
+  .grip{cursor:grab;font-size:1.2rem;padding-right:6px}
+  tbody tr:nth-child(odd){background:#f9fafb}
+  tbody tr{border-bottom:1px solid #e5e7eb}
+</style>
+</head>
+
+<body class="p-6 bg-gray-50" x-data="app()" x-init="init()">
+<h1 class="text-3xl font-semibold mb-6">Resource Allocation Simulator</h1>
+
+<!-- error banner -->
+<div x-show="err" x-html="err"
+     class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 mb-4 rounded"></div>
+
+<!-- ═════════  CONFIG BLOCKS  ═════════ -->
+<div class="grid md:grid-cols-2 gap-6">
+  <template x-for="[squad,cfg] of Object.entries(data)" :key="squad">
+    <div class="bg-white border rounded shadow-sm p-5">
+      <h2 class="text-lg font-bold mb-3" x-text="squad+' squad'"></h2>
+
+      <!-- squad‑level numbers -->
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <template x-for="side in ['backend','frontend']">
+          <label class="flex flex-col">
+            <span x-text="(side==='backend'?'Back':'Front')+'‑End (#eng)'"></span>
+            <input type="number" min="0" class="border rounded px-2 py-1"
+                   x-model.number="cfg.engineers[side]" @input="safeRedraw">
+          </label>
+        </template>
+        <template x-for="side in ['backend','frontend']">
+          <label class="flex flex-col">
+            <span x-text="'Eff‑'+(side==='backend'?'BE':'FE')+' (%)'"></span>
+            <input type="number" min="0" max="100" class="border rounded px-2 py-1"
+                   x-model.number="cfg.efficiency[side]" @input="safeRedraw">
+          </label>
+        </template>
+        <label class="flex flex-col col-span-2">
+          <span>Start date</span>
+          <input type="date" class="border rounded px-2 py-1"
+                 x-model="cfg.startDate" @input="safeRedraw">
+        </label>
+      </div>
+
+      <!-- projects table -->
+      <table class="min-w-full text-xs mt-4">
+        <thead class="bg-gray-100 text-gray-700">
+          <tr class="h-10">
+            <th></th><th>Project</th><th>#Prio</th><th>EffBE</th><th>ConcBE</th>
+            <th>EffFE</th><th>ConcFE</th><th></th>
+          </tr>
+        </thead>
+        <tbody :id="`tbl-${squad}`" x-ref="tbl"
+               x-init="Sortable.create($refs.tbl,{handle:'.grip',animation:150,onEnd:()=>drag(squad)})">
+          <template x-for="p in cfg.projects" :key="p.id">
+            <tr class="h-12" :data-id="p.id">
+              <td class="grip">≡</td>
+              <td><input class="w-48 border rounded px-1" x-model="p.name" @input="safeRedraw"></td>
+              <td><input type="number" min="1" class="w-14 border rounded px-1" x-model.number="p.priority" @input="safeRedraw"></td>
+              <td><input type="number" min="0" step=".1" class="w-16 border rounded px-1" x-model.number="p.effort.backendWeeks" @input="safeRedraw"></td>
+              <td><input type="number" min="0" class="w-14 border rounded px-1" x-model.number="p.concurrency.backend" @input="safeRedraw"></td>
+              <td><input type="number" min="0" step=".1" class="w-16 border rounded px-1" x-model.number="p.effort.frontendWeeks" @input="safeRedraw"></td>
+              <td><input type="number" min="0" class="w-14 border rounded px-1" x-model.number="p.concurrency.frontend" @input="safeRedraw"></td>
+              <td><button @click="remove(squad,p.id)">✕</button></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+      <button @click="add(squad)"
+              class="mt-2 bg-emerald-600 text-white text-xs px-3 py-1 rounded">Add Project</button>
+
+      <p class="mt-3 text-xs text-gray-600" x-html="capacity[squad]"></p>
+    </div>
+  </template>
+</div>
+
+<!-- SAVE -->
+<div class="mt-6">
+  <button @click="save()" class="bg-blue-600 text-white px-5 py-2 rounded">Save XML</button>
+  <span x-show="saved" x-transition class="text-green-700 ml-3">Saved!</span>
+</div>
+
+<!-- ═════════  GANTT  ═════════ -->
+<div class="bg-white border rounded shadow-sm p-5 mt-10 overflow-x-auto" x-show="header.length">
+  <div class="flex text-xs font-semibold border-b" :style="`width:${gWidth}px`">
+    <template x-for="m in months"><div class="border-r-4 border-gray-400 text-center shrink-0"
+          :style="`width:${m.w}px`" x-text="m.name"></div></template>
+  </div>
+  <div class="flex text-[11px] font-medium border-b" :style="`width:${gWidth}px`">
+    <template x-for="h in header"><div class="shrink-0 w-[32px] text-center border-r" :class="h.wk?'wk':''" x-html="h.lab"></div></template>
+  </div>
+  <template x-for="sq in Object.keys(data)" :key="sq">
+    <div>
+      <h3 class="font-semibold mt-4" x-text="sq+' squad'"></h3>
+      <template x-for="b in bars[sq]" :key="b.name">
+        <div class="g-row border" :style="`width:${gWidth}px`">
+          <div class="bar" :class="b.cls"
+               :style="`left:${b.left}px;width:${b.width}px`"
+               x-text="b.name"></div>
+        </div>
+      </template>
+    </div>
+  </template>
+</div>
+
+<!-- ═════════  LOGIC  ═════════ -->
+<script>
+function app(){return{
+  data:{}, header:[], months:[], bars:{}, capacity:{}, gWidth:0,
+  err:'', saved:false,
+
+  async init(){ this.data=await (await fetch('/data')).json(); this.redraw(); },
+
+  /* table helpers */
+  add(sq){
+    this.data[sq].projects.push({
+      id:'id'+Date.now(), name:'New Project',
+      priority:this.data[sq].projects.length+1,
+      effort:{backendWeeks:0,frontendWeeks:0},
+      concurrency:{backend:0,frontend:0}
+    });
+    this.$nextTick(this.redraw);
+  },
+  remove(sq,id){ this.data[sq].projects=this.data[sq].projects.filter(p=>p.id!==id); this.redraw(); },
+  drag(sq){
+    const order=[...document.querySelectorAll(`#tbl-${sq} tr[data-id]`)].map(tr=>tr.dataset.id);
+    this.data[sq].projects.sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+    this.data[sq].projects.forEach((p,i)=>p.priority=i+1);
+    this.redraw();
+  },
+  safeRedraw(e){ if(e&&e.target.value===''){this.err='Empty value';return;} this.err=''; this.redraw(); },
+
+  redraw(){
+    /* ------- validation ------- */
+    const bad=[];
+    for(const [s,c] of Object.entries(this.data)){
+      ['backend','frontend'].forEach(side=>{
+        if(c.engineers[side]<0) bad.push(`${s}: ${side} eng`);
+        if(c.efficiency[side]<0)bad.push(`${s}: eff ${side}`);
+      });
+      c.projects.forEach(p=>{
+        if(!p.name.trim()) bad.push(`${s}: blank`);
+        if(p.priority<1)   bad.push(`${p.name}: prio`);
+        ['backend','frontend'].forEach(side=>{
+          if(p.effort[`${side}Weeks`]<0) bad.push(`${p.name}: Eff ${side.slice(0,2).toUpperCase()}`);
+          if(p.concurrency[side]<0)      bad.push(`${p.name}: Con ${side.slice(0,2).toUpperCase()}`);
+        });
+      });
+    }
+    if(bad.length){this.err='Invalid → '+bad.join(', ');return;} this.err='';
+
+    /* ------- calendar ------- */
+    const DAY=32,wk=[4,5];
+    const gStart=new Date(Math.min(...Object.values(this.data).map(c=>new Date(c.startDate))));
+    const work=[], d=new Date(gStart);
+    while(work.length<240){ if(!wk.includes(d.getDay())) work.push(new Date(d)); d.setDate(d.getDate()+1); }
+    this.header=work.map(dt=>({lab:dt.toLocaleDateString('en',{weekday:'short'}).slice(0,3)+'<br>'+dt.getDate()}));
+    this.months=[]; let cur=work[0].getMonth(), start=0;
+    work.forEach((dt,i)=>{
+      if(dt.getMonth()!==cur){this.months.push({name:work[start].toLocaleDateString('en',{month:'short'}),w:(i-start)*DAY});cur=dt.getMonth();start=i;}
+    });
+    this.months.push({name:work[start].toLocaleDateString('en',{month:'short'}),w:(work.length-start)*DAY});
+    this.gWidth=this.header.length*DAY;
+
+    /* ------- scheduler with efficiency ------- */
+    const add =(s,n)=>{let x=new Date(s);while(n){x.setDate(x.getDate()+1);if(!wk.includes(x.getDay()))n--}return x};
+    const wd  =(s,e)=>{let x=new Date(s),c=0;while(x<e){if(!wk.includes(x.getDay()))c++;x.setDate(x.getDate()+1);}return c};
+
+    this.bars={}; this.capacity={};
+
+    for(const [sq,cfg] of Object.entries(this.data)){
+      const beTot=cfg.engineers.backend||0, feTot=cfg.engineers.frontend||0;
+      const effB=Math.max(0,cfg.efficiency.backend)/100,
+            effF=Math.max(0,cfg.efficiency.frontend)/100;
+
+      const hasBE=cfg.projects.some(p=>p.effort.backendWeeks>0),
+            hasFE=cfg.projects.some(p=>p.effort.frontendWeeks>0);
+
+      let tasks=cfg.projects.map(p=>({
+        name:p.name, prio:p.priority,
+        beRem:p.effort.backendWeeks*5, feRem:p.effort.frontendWeeks*5,
+        capB:p.concurrency.backend,   capF:p.concurrency.frontend,
+        start:null, end:null
+      })).sort((a,b)=>a.prio-b.prio);
+
+      let cur=new Date(cfg.startDate), idleB=0,idleF=0;
+
+      while(tasks.some(t=>t.beRem>0||t.feRem>0)){
+        let freeB=beTot, freeF=feTot;
+
+        tasks.forEach(t=>{
+          const takeB=Math.min(t.capB, t.beRem>0?freeB:0);
+          const takeF=Math.min(t.capF, t.feRem>0?freeF:0);
+          if((takeB||takeF)&&t.start===null) t.start=new Date(cur);
+
+          /* efficiency applied per engineer‑day */
+          t.beRem -= takeB * effB;
+          t.feRem -= takeF * effF;
+          freeB  -= takeB;
+          freeF  -= takeF;
+        });
+
+        if(hasBE) idleB+=freeB;
+        if(hasFE) idleF+=freeF;
+
+        tasks.filter(t=>!t.end && t.beRem<=0 && t.feRem<=0).forEach(t=>t.end=new Date(cur));
+        cur=add(cur,1);
+      }
+
+      /* build bars */
+      const bars=tasks.map(t=>({name:t.name,left:wd(gStart,t.start)*DAY,width:(wd(t.start,t.end)+1)*DAY}));
+      const longest=Math.max(...bars.map(b=>b.width));
+      bars.forEach((b,i)=>b.cls=b.width===longest?'cp':(i%2?'green':'blue'));
+      this.bars[sq]=bars;
+      this.capacity[sq]=`Idle engineer‑weeks (BE / FE): <strong>${(idleB/5).toFixed(1)}</strong> / <strong>${(idleF/5).toFixed(1)}</strong>`;
+    }
+  },
+
+  async save(){
+    await fetch('/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(this.data)});
+    this.saved=true; setTimeout(()=>this.saved=false,1400);
+  }
+}}</script>
+</body></html>

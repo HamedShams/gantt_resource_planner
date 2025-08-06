@@ -1,0 +1,97 @@
+<!doctype html><html><head>
+  <meta charset="utf-8"><script src="https://cdn.tailwindcss.com"></script>
+  <title>Edit</title></head><body class="p-6">
+  <h2 class="text-2xl font-semibold mb-4">Edit configuration ({{db}})</h2>
+  <form id="frm" class="space-y-8">
+  {% for squad,cfg in data.items() %}
+  <fieldset class="border p-4">
+    <legend class="font-semibold">{{squad}} squad</legend>
+    <div class="flex flex-wrap gap-4 items-center my-2 text-sm">
+      Back‑End #
+      <input type="number" name="{{squad}}.engineers.backend" value="{{cfg.engineers.backend}}" class="border rounded w-20">
+      Front‑End #
+      <input type="number" name="{{squad}}.engineers.frontend" value="{{cfg.engineers.frontend}}" class="border rounded w-20">
+      Eff‑BE %
+      <input type="number" name="{{squad}}.efficiency.backend" value="{{cfg.efficiency.backend}}" class="border rounded w-20">
+      Eff‑FE %
+      <input type="number" name="{{squad}}.efficiency.frontend" value="{{cfg.efficiency.frontend}}" class="border rounded w-20">
+      Start
+      <input type="date" name="{{squad}}.startDate" value="{{cfg.startDate}}" class="border rounded">
+    </div>
+    <table class="min-w-full text-xs mb-2">
+      <thead class="bg-gray-100">
+        <tr><th>Name</th><th>Prio</th><th>Eff BE</th><th>Conc BE</th><th>Eff FE</th><th>Conc FE</th></tr>
+      </thead>
+      <tbody id="tbl-{{squad}}">
+      {% for p in cfg.projects %}
+        <tr>
+          <td><input name="{{p.id}}.name" value="{{p.name}}" class="border rounded w-44"></td>
+          <td><input type="number" name="{{p.id}}.priority" value="{{p.priority}}" class="border rounded w-16"></td>
+          <td><input type="number" step=".1" name="{{p.id}}.be_w" value="{{p.effort.backendWeeks}}" class="border rounded w-20"></td>
+          <td><input type="number" name="{{p.id}}.be_c" value="{{p.concurrency.backend}}" class="border rounded w-16"></td>
+          <td><input type="number" step=".1" name="{{p.id}}.fe_w" value="{{p.effort.frontendWeeks}}" class="border rounded w-20"></td>
+          <td><input type="number" name="{{p.id}}.fe_c" value="{{p.concurrency.frontend}}" class="border rounded w-16"></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <button type="button" onclick="addRow('{{squad}}')" class="px-2 py-1 bg-emerald-600 text-white rounded text-xs">Add project</button>
+  </fieldset>
+  {% endfor %}
+  <button class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+  </form>
+  
+  <script>
+  const data={{data|tojson}};
+  function uuid(){return 'id'+Date.now()+Math.floor(Math.random()*1000)}
+  function addRow(squad){
+    const id=uuid();
+    const tbl=document.getElementById('tbl-'+squad);
+    const row=document.createElement('tr');
+    row.innerHTML=`
+      <td><input name="${id}.name" value="New Project" class="border rounded w-44"></td>
+      <td><input type="number" name="${id}.priority" value="1" class="border rounded w-16"></td>
+      <td><input type="number" step=".1" name="${id}.be_w" value="1" class="border rounded w-20"></td>
+      <td><input type="number" name="${id}.be_c" value="1" class="border rounded w-16"></td>
+      <td><input type="number" step=".1" name="${id}.fe_w" value="1" class="border rounded w-20"></td>
+      <td><input type="number" name="${id}.fe_c" value="1" class="border rounded w-16"></td>`;
+    tbl.appendChild(row);
+  }
+  
+  frm.onsubmit=async e=>{
+    e.preventDefault();
+    const F=new FormData(frm);
+    const out=structuredClone(data);
+    // update squads
+    for(const [k,v] of F.entries()){
+      const parts=k.split('.');
+      if(parts.length===3){      // squad level
+        const [sq,sect,field]=parts;
+        out[sq][sect][field]=sect==='startDate'?v:+v;
+      }else if(parts.length===2){ // project field
+        const [pid,attr]=parts;
+        let prj=null, parent=null;
+        for(const sq of Object.values(out)){
+          prj=sq.projects.find(p=>p.id===pid);
+          if(prj){parent=sq;break;}
+        }
+        if(!prj){ // new row (id not yet in data) -> push to first squad with matching tbl
+          const squadKey=Object.keys(out).find(n=>document.querySelector(`#tbl-${n} input[name='${pid}.name']`));
+          prj={id:pid,name:"",priority:1,effort:{backendWeeks:1,frontendWeeks:1},concurrency:{backend:1,frontend:1}};
+          out[squadKey].projects.push(prj);
+          parent=out[squadKey];
+        }
+        if(attr==="name") prj.name=v;
+        else if(attr==="priority") prj.priority=+v;
+        else if(attr==="be_w") prj.effort.backendWeeks=+v;
+        else if(attr==="fe_w") prj.effort.frontendWeeks=+v;
+        else if(attr==="be_c") prj.concurrency.backend=+v;
+        else if(attr==="fe_c") prj.concurrency.frontend=+v;
+      }
+    }
+    await fetch("/save",{method:"POST",body:new URLSearchParams({payload:JSON.stringify(out)})});
+    location.href="/";
+  };
+  </script>
+  </body></html>
+  

@@ -1,0 +1,34 @@
+<!doctype html><html><head>
+  <meta charset="utf-8"><script src="https://cdn.tailwindcss.com"></script>
+  <title>Gantt</title>
+  <style>
+  .row{position:relative;height:28px;margin:6px 0;}
+  .bar{position:absolute;height:100%;border-radius:4px;color:#fff;
+       font-size:.75rem;line-height:28px;padding:0 8px;white-space:nowrap;
+       overflow:hidden;text-overflow:ellipsis;}
+  .blue{background:#3b82f6;} .green{background:#10b981;}
+  </style></head><body class="p-6 text-gray-800">
+  <h2 class="text-2xl font-semibold mb-4">Resource‑allocation simulator</h2>
+  <p class="mb-4 text-sm"><strong>Config:</strong> {{db}}</p>
+  
+  <div class="flex overflow-x-auto border-b">
+    {% for h in header %}
+    <div class="shrink-0 w-[{{dp}}px] text-center text-xs py-1 border-r {{'bg-gray-100 text-gray-400' if h.wk}}">
+      {{h.lab|safe}}
+    </div>
+    {% endfor %}
+  </div>
+  
+  {% for sq in ['Alpha','Bravo'] if sq in tasks|map(attribute='squad') %}
+    <h3 class="mt-6 font-bold text-lg">{{sq}} squad</h3>
+    {% for t in tasks if t.squad==sq %}
+      <div class="row border">
+        <div class="bar {{t.colour}}" style="left:{{t.left}}px;width:{{t.width}}px">
+          {{t.name}}
+        </div>
+      </div>
+    {% endfor %}
+  {% endfor %}
+  <a class="mt-6 inline-block text-blue-600 underline" href="/edit">Edit</a>
+  </body></html>
+  

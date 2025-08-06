@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resourceConfig>
+  <squad name="Alpha">
+    <engineers backend="4.2" frontend="1.5"/>
+    <efficiency backend="70" frontend="70"/>
+    <startDate>2025-05-10</startDate>
+    <projects>
+      <project id="alpha-rate-review" name="Rate &amp; Review" priority="1">
+        <effort backendWeeks="4" frontendWeeks="2"/>
+        <concurrency backend="2" frontend="1"/>
+      </project>
+      <project id="alpha-pharmacy-multi" name="Pharmacy Multi‑Invoice" priority="2">
+        <effort backendWeeks="6" frontendWeeks="3"/>
+        <concurrency backend="2" frontend="2"/>
+      </project>
+      <project id="alpha-search-rewrite" name="Search Rewrite" priority="3">
+        <effort backendWeeks="7" frontendWeeks="4"/>
+        <concurrency backend="2" frontend="1"/>
+      </project>
+      <!-- Added projects -->
+      <project id="alpha-review-enhancement-ai" name="Review Enhancement with AI" priority="4">
+        <effort backendWeeks="7" frontendWeeks="4"/>
+        <concurrency backend="2" frontend="2"/>
+      </project>
+      <project id="alpha-follow-up-messaging-upsell" name="Follow-Up Messaging Upsell" priority="5">
+        <effort backendWeeks="6" frontendWeeks="3"/>
+        <concurrency backend="1" frontend="1"/>
+      </project>
+      <project id="alpha-expert-performance-dashboard" name="Expert Performance Dashboard" priority="6">
+        <effort backendWeeks="3" frontendWeeks="5"/>
+        <concurrency backend="1" frontend="2"/>
+      </project>
+      <project id="alpha-pharmacy-we" name="Web Engage | New Events" priority="7">
+        <effort backendWeeks="4" frontendWeeks="0"/>
+        <concurrency backend="1" frontend="1"/>
+      </project>
+      <project id="alpha-multi-session-packages-pay-in-four" name="Multi Session Packages + Pay in Four" priority="6">
+        <effort backendWeeks="5" frontendWeeks="8"/>
+        <concurrency backend="2" frontend="2"/>
+      </project>
+    </projects>
+  </squad>
+
+  <squad name="Bravo">
+    <engineers backend="3.2" frontend="1.5"/>
+    <efficiency backend="70" frontend="70"/>
+    <startDate>2025-05-10</startDate>
+    <projects>
+      <project id="bravo-quick-consult" name="Quick Consult" priority="1">
+        <effort backendWeeks="3" frontendWeeks="2"/>
+        <concurrency backend="1" frontend="1"/>
+      </project>
+      <project id="bravo-pharmacy-ui" name="Pharmacy AI‑Powered UI" priority="2">
+        <effort backendWeeks="2" frontendWeeks="3"/>
+        <concurrency backend="1" frontend="1"/>
+      </project>
+      <!-- Added projects -->
+      <project id="bravo-prescription-generation-flow" name="Prescription Generation Flow" priority="3">
+        <effort backendWeeks="2" frontendWeeks="3"/>
+        <concurrency backend="1" frontend="1"/>
+      </project>
+      <project id="bravo-video-call" name="Video Call" priority="4">
+        <effort backendWeeks="10" frontendWeeks="7"/>
+        <concurrency backend="2" frontend="2"/>
+      </project>
+      <project id="bravo-webrtc-fallback-call" name="WebRTC Fallback Call" priority="5">
+        <effort backendWeeks="5" frontendWeeks="3"/>
+        <concurrency backend="2" frontend="1"/>
+      </project>
+      <project id="bravo-multi-session-packages-pay-in-four" name="Multi Session Packages + Pay in Four" priority="6">
+        <effort backendWeeks="5" frontendWeeks="8"/>
+        <concurrency backend="2" frontend="2"/>
+      </project>
+    </projects>
+  </squad>
+</resourceConfig>
