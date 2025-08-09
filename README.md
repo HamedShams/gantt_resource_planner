@@ -20,7 +20,7 @@ Plan and simulate delivery across two cross-functional squads (**Alpha** and **B
 ## 🧠 How it works (high level)
 
 * You provide Back-End/Front-End **FTEs** per squad, **Capacity Factor (%)**, and a prioritized **task list**.
-* For each task, you set **Effort #Weeks** (end-to-end, including QA & release) and **Parallel Streams** per discipline.
+* For each task / project, you set **Effort #Weeks** (estimated end-to-end effort incl. QA & release; One week contains 5 work days) and **Parallel Streams** per discipline that defines how many engineers can work on that particular task concurrently.
 * The planner computes the schedule left-to-right, respecting capacity and max parallelism, then renders a Gantt.
 
 ---
@@ -66,7 +66,8 @@ These are read at runtime (no secrets in the repo). Defaults are sane for local 
 | `VIEWER_PW`    | `viewer123`                 | Read-only password.                                            |
 | `SECRET_KEY`   | `CHANGE_ME`                 | Cookie/session signing key (set a long random string in prod). |
 | `DISABLE_AUTH` | `false`                     | `true` disables auth; everyone is admin.                       |
-| `CONFIG_PATH`  | `/data/resource_config.xml` | XML path; for local you can set `resource_config.xml`.         |
+| `CONFIG_PATH`  | `/data/resource_config.xml` | Database (XML) path; for local you can set `resource_config.xml`.         |
+| `WEEKEND_DAYS` | `3,4`                       | Comma-separated Python weekday numbers of weekend days (Mon=0). Example `5,6` for **Sat & Sun**. It's defaulted on Thu & Fri based on Persian calendar. |
 
 **.env example (local):**
 

@@ -1,19 +1,20 @@
 # SPDX-License-Identifier: MIT
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, Response, PlainTextResponse
 from jinja2 import Environment, FileSystemLoader
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
-import os
+import traceback, os, json
 from typing import Callable
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi import Form, Depends, HTTPException, status
 from starlette.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-BASE   = Path(__file__).parent
+BASE = Path(__file__).parent
+
 
 # ─── ENV config ───────────────────────────────────────────────────────
 ADMIN_USER = os.getenv("ADMIN_USER", "admin")
@@ -23,9 +24,18 @@ VIEWER_PW = os.getenv("VIEWER_PW", "viewer123")
 SECRET_KEY = os.getenv("SECRET_KEY", "CHANGE_ME")
 DISABLE_AUTH = os.getenv("DISABLE_AUTH", "true").lower() == "true"
 CONFIG_PATH = Path(os.getenv("CONFIG_PATH", str(BASE / "data" / "resource_config.xml")))
+# WEEKEND_DAYS: comma-separated weekday numbers (Python: Monday=0). Defaults to "3,4" → Thu & Fri (Persian Calendar)
+WEEKEND_DAYS = {int(x) for x in os.getenv("WEEKEND_DAYS", "3,4").split(",") if x.strip().isdigit()}
 
+
+# ─── constants ───────────────────────────────────────────────────────
 DAY_PX = 32
-WEEKEND = {3, 4}                      # Thu, Fri
+WEEKEND = WEEKEND_DAYS
+# JavaScript Date.getDay(): Sunday=0. Convert Python weekday numbers to JS numbers.
+WEEKEND_JS = [(d + 1) % 7 for d in sorted(WEEKEND)]
+WEEKDAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+WEEKEND_LABEL = " & ".join(WEEKDAY_NAMES[d] for d in sorted(WEEKEND))
+
 
 env = Environment(loader=FileSystemLoader(BASE / "templates"))
 templates = Jinja2Templates(directory=str(BASE / "templates"))
@@ -43,22 +53,45 @@ def add_wd(s,n):
 
 # ─── XML I/O ────────────────────────────────────────────────────────
 def load_cfg():
-    root = ET.parse(CONFIG_PATH).getroot(); out={}
-    for s in root.iter("squad"):
-        n=s.attrib["name"]
-        out[n]=dict(
-            engineers  ={ k: float(v) for k,v in s.find("engineers").attrib.items() },  # ← float
-            efficiency ={ k: float(v) for k,v in s.find("efficiency").attrib.items() }, # ← float
-            startDate  = s.findtext("startDate"),
-            projects   = []
-        )
-        for p in s.find("projects").iter("project"):
-            out[n]["projects"].append(dict(
-              id=p.attrib["id"], name=p.attrib["name"], priority=int(p.attrib["priority"]),
-              effort      ={k: float(v) for k,v in p.find("effort").attrib.items()},
-              concurrency ={k: int(v)   for k,v in p.find("concurrency").attrib.items()}
-            ))
-    return out
+    """
+    Reads CONFIG_PATH XML and returns the same dict structure as before.
+    On failure, logs a traceback to stdout (shows in Railway logs) and raises 500.
+    """
+    try:
+        cfg_path = Path(CONFIG_PATH)  # CONFIG_PATH is already a Path-like
+        if not cfg_path.exists():
+            raise FileNotFoundError(f"{cfg_path} not found")
+        if cfg_path.is_dir():
+            raise IsADirectoryError(f"{cfg_path} is a directory; expected a file")
+    
+        root = ET.parse(cfg_path).getroot(); out={}
+        for s in root.iter("squad"):
+            n=s.attrib["name"]
+            out[n]=dict(
+                engineers  ={ k: float(v) for k,v in s.find("engineers").attrib.items() },  # ← float
+                efficiency ={ k: float(v) for k,v in s.find("efficiency").attrib.items() }, # ← float
+                startDate  = s.findtext("startDate"),
+                projects   = []
+            )
+            for p in s.find("projects").iter("project"):
+                out[n]["projects"].append(dict(
+                id=p.attrib["id"], name=p.attrib["name"], priority=int(p.attrib["priority"]),
+                effort      ={k: float(v) for k,v in p.find("effort").attrib.items()},
+                concurrency ={k: int(v)   for k,v in p.find("concurrency").attrib.items()}
+                ))
+        # lightweight debug line to confirm load in logs
+        try:
+            total = sum(len(s["projects"]) for s in out.values())
+            print(f"[load_cfg] OK - path={cfg_path} squads={list(out.keys())} total_projects={total}")
+        except Exception:
+            pass
+                
+        return out
+
+    except Exception as e:
+        traceback.print_exc()  # full stack in Deploy/HTTP logs
+        raise HTTPException(status_code=500, detail=f"load_cfg failed for {CONFIG_PATH}: {e}")
+
 
 def save_cfg(data):
     root=ET.Element("resourceConfig")
@@ -117,7 +150,12 @@ def logout(request: Request):
 # ─── routes ─────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user: str = Depends(login_required)):
-    html = env.get_template("index.html").render(day_px=DAY_PX, is_admin=(user == ADMIN_USER))
+    html = env.get_template("index.html").render(
+        day_px=DAY_PX,
+        is_admin=(user == ADMIN_USER),
+        weekend_js=json.dumps(WEEKEND_JS),
+        weekend_label=WEEKEND_LABEL
+    )
     return HTMLResponse(content=html)
 
 @app.get("/data")

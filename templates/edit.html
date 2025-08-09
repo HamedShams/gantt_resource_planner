@@ -16,9 +16,9 @@
       <input type="number" name="{{squad}}.engineers.backend" value="{{cfg.engineers.backend}}" class="border rounded w-20">
       <span data-tip="Headcount in full-time equivalents; decimals allowed." title="Headcount in full-time equivalents; decimals allowed.">Front-End #FTEs</span>
       <input type="number" name="{{squad}}.engineers.frontend" value="{{cfg.engineers.frontend}}" class="border rounded w-20">
-      <span data-tip="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline)." title="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline).">BE Capacity %</span>
+      <span data-tip="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency." title="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency.">Back-End Capacity %</span>
       <input type="number" name="{{squad}}.efficiency.backend" value="{{cfg.efficiency.backend}}" class="border rounded w-20">
-      <span data-tip="Efficiency Factor for the Front-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline)." title="Efficiency Factor for the Front-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline).">FE Capacity %</span>
+      <span data-tip="Efficiency Factor for the Front-End engineers: adjusts for availability, estimate error, and efficiency." title="Efficiency Factor for the Front-End engineers: adjusts for availability, estimate error, and efficiency.">Front-End Capacity %</span>
       <input type="number" name="{{squad}}.efficiency.frontend" value="{{cfg.efficiency.frontend}}" class="border rounded w-20">
       Start Date
       <input type="date" name="{{squad}}.startDate" value="{{cfg.startDate}}" class="border rounded">
@@ -27,11 +27,11 @@
       <thead class="bg-gray-100">
         <tr>
             <th>Name</th>
-            <th data-tip="1 is highest priority; lower number schedules earlier." title="#Priority: 1 is highest priority; lower number schedules earlier.">#Priority</th>
-            <th data-tip="End-to-end (estimated) effort of the Back-End side to production (incl. QA & release); decimals allowed." title="BE Effort (#Weeks): End-to-end (estimated) effort of the Back-End side to production (incl. QA & release); decimals allowed.">BE Effort (#Weeks)</th>
-            <th data-tip="Max number of Back-End engineers who can progress this task in parallel." title="BE #Parallel: Max number of Back-End engineers who can progress this task in parallel.">BE #Parallel</th>
-            <th data-tip="End-to-end (estimated) effort of the Front-End side to production (incl. QA & release); decimals allowed." title="FE Effort (#Weeks): End-to-end (estimated) effort of the Front-End side to production (incl. QA & release); decimals allowed.">FE Effort (#Weeks)</th>
-            <th data-tip="Max number of Front-End engineers who can progress this task in parallel." title="FE #Parallel: Max number of Front-End engineers who can progress this task in parallel.">FE #Parallel</th>
+            <th data-tip="#Priority: 1 is highest priority; lower number schedules earlier.">#Priority</th>
+            <th data-tip="BE Effort (#Weeks): Eestimated effort of the Back-End side (end-to-end; incl. QA & release); decimals allowed.">BE Effort (#Weeks)</th>
+            <th data-tip="BE #Parallel: Max number of Back-End engineers who can progress this task in parallel.">BE #Parallel</th>
+            <th data-tip="FE Effort (#Weeks): Eestimated effort of the Front-End side (end-to-end; incl. QA & release); decimals allowed.">FE Effort (#Weeks)</th>
+            <th data-tip="FE #Parallel: Max number of Front-End engineers who can progress this task in parallel.">FE #Parallel</th>
           </tr>
       </thead>
       <tbody id="tbl-{{squad}}">

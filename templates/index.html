@@ -26,6 +26,7 @@
   [data-tip]:hover::after{opacity:1;}
   tbody tr:nth-child(odd){background:#f9fafb}
   tbody tr{border-bottom:1px solid #e5e7eb}
+  html,body{overflow-x:hidden}
 </style>
 </head>
 
@@ -37,7 +38,7 @@
   </h2>
   
   <h3 class="ml-1 mt-4 mb-6 text-lg md:text-xl text-gray-700 leading-7 block w-full">
-    Plan and simulate delivery across our two cross-functional squads with an interactive Gantt. This tool is a Gantt-based what-if planner for roadmaps and product backlogs. Each panel captures a squad’s resources (FTEs and a Capacity Factor) and its backlog. Drag tasks to change priority, set Parallels to control how many engineers can work simultaneously, and adjust Capacity to reflect availability and estimate uncertainty. The Gantt updates instantly so you can compare scenarios and understand trade-offs. Tune prios and resources until the timeline fits your constraints.
+    Plan and simulate delivery across two cross-functional squads with our interactive Gantt-based what-if planner. Each panel shows a squad’s resources (FTEs, Capacity Factor) and backlog. Drag tasks to reprioritize, set Parallels to control simultaneous work, and adjust Capacity% to reflect efficiency or availability. The Gantt updates in real time so you can explore scenarios, understand trade-offs, and fine-tune prios and resources until the timeline fits your constraints.
   </h3>
 
 <!-- error banner -->
@@ -61,13 +62,13 @@
         </template>
         <template x-for="side in ['backend','frontend']">
           <label class="flex flex-col">
-            <span data-tip="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency." x-text="side==='backend'?'BE Capacity %':'FE Capacity %'"></span>
+            <span data-tip="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency." x-text="side==='backend'?'Back-End Capacity %':'Front-End Capacity %'"></span>
             <input type="number" min="0" max="100" class="border rounded px-2 py-1"
                    x-model.number="cfg.efficiency[side]" @input="safeRedraw">
           </label>
         </template>
         <label class="flex flex-col col-span-2">
-          <span data-tip="Weekend: Thu & Fri (Persian calendar)">Start Date</span>
+          <span data-tip="Each week represents 5 working days. Weekend: {{ weekend_label }}">Start Date</span>
           <input type="date" class="border rounded px-2 py-1"
                  x-model="cfg.startDate" @input="safeRedraw">
         </label>
@@ -189,12 +190,16 @@ function app(){return{
     }
     if(bad.length){this.err='Invalid → '+bad.join(', ');return;} this.err='';
 
+
     /* ------- calendar ------- */
-    const DAY=32,wk=[4,5];
+    const DAY=32,wk={{ weekend_js | safe }};
     const gStart=new Date(Math.min(...Object.values(this.data).map(c=>new Date(c.startDate))));
     const work=[], d=new Date(gStart);
     while(work.length<240){ if(!wk.includes(d.getDay())) work.push(new Date(d)); d.setDate(d.getDate()+1); }
-    this.header=work.map(dt=>({lab:dt.toLocaleDateString('en',{weekday:'short'}).slice(0,3)+'<br>'+dt.getDate()}));
+    this.header=work.map(dt=>({
+        lab: dt.toLocaleDateString('en',{weekday:'short'}).slice(0,3)+'<br>'+dt.getDate(),
+        wk:  wk.includes(dt.getDay())
+      }));
     this.months=[]; let cur=work[0].getMonth(), start=0;
     work.forEach((dt,i)=>{
       if(dt.getMonth()!==cur){this.months.push({name:work[start].toLocaleDateString('en',{month:'short'}),w:(i-start)*DAY});cur=dt.getMonth();start=i;}
@@ -261,4 +266,5 @@ function app(){return{
     this.saved=true; setTimeout(()=>this.saved=false,1400);
   }
 }}</script>
+  <footer class="mt-14 text-center text-xs text-gray-500">Built with ☕ and ❤️ by <a href="https://hamedshams.com" class="underline hover:text-blue-600" target="_blank" rel="noopener">Hamed Shams</a> — MIT License</footer>
 </body></html>
