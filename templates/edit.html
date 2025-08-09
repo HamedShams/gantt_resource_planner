@@ -1,60 +1,72 @@
 <!doctype html><html><head>
   <meta charset="utf-8"><script src="https://cdn.tailwindcss.com"></script>
+<style>
+  [data-tip]{position:relative;cursor:help}
+  [data-tip]::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;font-size:.75rem;padding:4px 8px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:50}
+  [data-tip]:hover::after{opacity:1;}
+</style>
   <title>Edit</title></head><body class="p-6">
   <h2 class="text-2xl font-semibold mb-4">Edit configuration ({{db}})</h2>
   <form id="frm" class="space-y-8">
   {% for squad,cfg in data.items() %}
   <fieldset class="border p-4">
-    <legend class="font-semibold">{{squad}} squad</legend>
+    <legend class="font-semibold" title="Resources &amp; backlog">{{squad}} Squad (resources &amp; backlog)</legend>
     <div class="flex flex-wrap gap-4 items-center my-2 text-sm">
-      Back‑End #
+      <span data-tip="Headcount in full-time equivalents; decimals allowed." title="Headcount in full-time equivalents; decimals allowed.">Back-End #FTEs</span>
       <input type="number" name="{{squad}}.engineers.backend" value="{{cfg.engineers.backend}}" class="border rounded w-20">
-      Front‑End #
+      <span data-tip="Headcount in full-time equivalents; decimals allowed." title="Headcount in full-time equivalents; decimals allowed.">Front-End #FTEs</span>
       <input type="number" name="{{squad}}.engineers.frontend" value="{{cfg.engineers.frontend}}" class="border rounded w-20">
-      Eff‑BE %
+      <span data-tip="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline)." title="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline).">BE Capacity %</span>
       <input type="number" name="{{squad}}.efficiency.backend" value="{{cfg.efficiency.backend}}" class="border rounded w-20">
-      Eff‑FE %
+      <span data-tip="Efficiency Factor for the Front-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline)." title="Efficiency Factor for the Front-End engineers: adjusts for availability, estimate error, and efficiency (100% = baseline).">FE Capacity %</span>
       <input type="number" name="{{squad}}.efficiency.frontend" value="{{cfg.efficiency.frontend}}" class="border rounded w-20">
-      Start
+      Start Date
       <input type="date" name="{{squad}}.startDate" value="{{cfg.startDate}}" class="border rounded">
     </div>
     <table class="min-w-full text-xs mb-2">
       <thead class="bg-gray-100">
-        <tr><th>Name</th><th>Prio</th><th>Eff BE</th><th>Conc BE</th><th>Eff FE</th><th>Conc FE</th></tr>
+        <tr>
+            <th>Name</th>
+            <th data-tip="1 is highest priority; lower number schedules earlier." title="#Priority: 1 is highest priority; lower number schedules earlier.">#Priority</th>
+            <th data-tip="End-to-end (estimated) effort of the Back-End side to production (incl. QA & release); decimals allowed." title="BE Effort (#Weeks): End-to-end (estimated) effort of the Back-End side to production (incl. QA & release); decimals allowed.">BE Effort (#Weeks)</th>
+            <th data-tip="Max number of Back-End engineers who can progress this task in parallel." title="BE #Parallel: Max number of Back-End engineers who can progress this task in parallel.">BE #Parallel</th>
+            <th data-tip="End-to-end (estimated) effort of the Front-End side to production (incl. QA & release); decimals allowed." title="FE Effort (#Weeks): End-to-end (estimated) effort of the Front-End side to production (incl. QA & release); decimals allowed.">FE Effort (#Weeks)</th>
+            <th data-tip="Max number of Front-End engineers who can progress this task in parallel." title="FE #Parallel: Max number of Front-End engineers who can progress this task in parallel.">FE #Parallel</th>
+          </tr>
       </thead>
       <tbody id="tbl-{{squad}}">
       {% for p in cfg.projects %}
         <tr>
-          <td><input name="{{p.id}}.name" value="{{p.name}}" class="border rounded w-44"></td>
-          <td><input type="number" name="{{p.id}}.priority" value="{{p.priority}}" class="border rounded w-16"></td>
-          <td><input type="number" step=".1" name="{{p.id}}.be_w" value="{{p.effort.backendWeeks}}" class="border rounded w-20"></td>
-          <td><input type="number" name="{{p.id}}.be_c" value="{{p.concurrency.backend}}" class="border rounded w-16"></td>
-          <td><input type="number" step=".1" name="{{p.id}}.fe_w" value="{{p.effort.frontendWeeks}}" class="border rounded w-20"></td>
-          <td><input type="number" name="{{p.id}}.fe_c" value="{{p.concurrency.frontend}}" class="border rounded w-16"></td>
+          <td><input name="{{p.id}}.name" value="{{p.name}}" class="border rounded w-44" placeholder="Project or task"></td>
+          <td><input type="number" name="{{p.id}}.priority" value="{{p.priority}}" class="border rounded w-16" placeholder="1"></td>
+          <td><input type="number" step=".1" name="{{p.id}}.be_w" value="{{p.effort.backendWeeks}}" class="border rounded w-20" placeholder="1"></td>
+          <td><input type="number" name="{{p.id}}.be_c" min="1" value="{{p.concurrency.backend}}" class="border rounded w-16" placeholder="1"></td>
+          <td><input type="number" step=".1" name="{{p.id}}.fe_w" value="{{p.effort.frontendWeeks}}" class="border rounded w-20" placeholder="1"></td>
+          <td><input type="number" name="{{p.id}}.fe_c" min="1" value="{{p.concurrency.frontend}}" class="border rounded w-16" placeholder="1"></td>
         </tr>
       {% endfor %}
       </tbody>
     </table>
-    <button type="button" onclick="addRow('{{squad}}')" class="px-2 py-1 bg-emerald-600 text-white rounded text-xs">Add project</button>
+    <button type="button" onclick="addRow('{{squad}}')" class="px-2 py-1 bg-emerald-600 text-white rounded text-xs">Add Project</button>
   </fieldset>
   {% endfor %}
-  <button class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+  {% if is_admin %}<button class="px-4 py-2 bg-blue-600 text-white rounded">Save Plan</button>{% endif %}
   </form>
   
   <script>
-  const data={{data|tojson}};
+  const data = JSON.parse('{{ data | tojson | safe }}');
   function uuid(){return 'id'+Date.now()+Math.floor(Math.random()*1000)}
   function addRow(squad){
     const id=uuid();
     const tbl=document.getElementById('tbl-'+squad);
     const row=document.createElement('tr');
     row.innerHTML=`
-      <td><input name="${id}.name" value="New Project" class="border rounded w-44"></td>
+      <td><input name="${id}.name" value="New Project" placeholder="Project or task" class="border rounded w-44"></td>
       <td><input type="number" name="${id}.priority" value="1" class="border rounded w-16"></td>
       <td><input type="number" step=".1" name="${id}.be_w" value="1" class="border rounded w-20"></td>
-      <td><input type="number" name="${id}.be_c" value="1" class="border rounded w-16"></td>
+      <td><input type="number" min="1" name="${id}.be_c" value="1" class="border rounded w-16"></td>
       <td><input type="number" step=".1" name="${id}.fe_w" value="1" class="border rounded w-20"></td>
-      <td><input type="number" name="${id}.fe_c" value="1" class="border rounded w-16"></td>`;
+      <td><input type="number" min="1" name="${id}.fe_c" value="1" class="border rounded w-16"></td>`;
     tbl.appendChild(row);
   }
   

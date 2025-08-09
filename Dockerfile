@@ -1,4 +1,4 @@
-# Dockerfile for resource_allocator (FastAPI)
+# Dockerfile for gantt_resource_planner (FastAPI)
 FROM python:3.11-slim
 
 # Set work directory
@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
 COPY main.py ./
-COPY resource_config.xml ./
+COPY data ./data
 COPY templates ./templates
 
 # Expose the port FastAPI will run on

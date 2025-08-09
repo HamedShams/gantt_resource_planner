@@ -1,4 +1,5 @@
 fastapi==0.111.0
 uvicorn==0.29.0
 jinja2==3.1.3
-python-multipart==0.0.9   # tiny lib so FastAPI can parse form posts
+python-multipart==0.0.9   # form parsing
+itsdangerous==2.1.2   # required by Starlette SessionMiddleware

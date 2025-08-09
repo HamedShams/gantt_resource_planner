@@ -2,7 +2,12 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Resource Allocation Simulator</title>
+<title>Roadmap Scenario Planner</title>
+<meta name="theme-color" content="#EF233C"/>
+<meta name="description" content="Interactive Gantt & capacity simulation for PMs and engineering leads.">
+<meta name="keywords" content="roadmap, scenario, planner, gantt, capacity, simulation, PM, engineering, leads">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Hamed Shams">
 
 <!-- libraries -->
 <script src="https://cdn.tailwindcss.com"></script>
@@ -16,13 +21,24 @@
   .blue{background:#3b82f6}.green{background:#10b981}.cp{background:#dc2626}
   .wk{background:#f3f4f6;color:#9ca3af}
   .grip{cursor:grab;font-size:1.2rem;padding-right:6px}
+  [data-tip]{position:relative;cursor:help}
+  [data-tip]::after{content:attr(data-tip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;font-size:.75rem;padding:4px 8px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:50}
+  [data-tip]:hover::after{opacity:1;}
   tbody tr:nth-child(odd){background:#f9fafb}
   tbody tr{border-bottom:1px solid #e5e7eb}
 </style>
 </head>
 
 <body class="p-6 bg-gray-50" x-data="app()" x-init="init()">
-<h1 class="text-3xl font-semibold mb-6">Resource Allocation Simulator</h1>
+  <h1 class="ml-1 text-3xl font-semibold">🚀 Roadmap Scenario Planner</h1>
+
+  <h2 class="ml-1 mt-2 text-lg md:text-xl text-gray-600 font-medium">
+    Interactive Gantt &amp; capacity simulation for PMs
+  </h2>
+  
+  <h3 class="ml-1 mt-4 mb-6 text-lg md:text-xl text-gray-700 leading-7 block w-full">
+    Plan and simulate delivery across our two cross-functional squads with an interactive Gantt. This tool is a Gantt-based what-if planner for roadmaps and product backlogs. Each panel captures a squad’s resources (FTEs and a Capacity Factor) and its backlog. Drag tasks to change priority, set Parallels to control how many engineers can work simultaneously, and adjust Capacity to reflect availability and estimate uncertainty. The Gantt updates instantly so you can compare scenarios and understand trade-offs. Tune prios and resources until the timeline fits your constraints.
+  </h3>
 
 <!-- error banner -->
 <div x-show="err" x-html="err"
@@ -32,26 +48,26 @@
 <div class="grid md:grid-cols-2 gap-6">
   <template x-for="[squad,cfg] of Object.entries(data)" :key="squad">
     <div class="bg-white border rounded shadow-sm p-5">
-      <h2 class="text-lg font-bold mb-3" x-text="squad+' squad'"></h2>
+      <h2 class="text-lg font-bold mb-3" x-text="({Alpha:'Alpha Squad (resources & backlog)', Bravo:'Bravo Squad (resources & backlog)'}[squad] || squad)"></h2>
 
       <!-- squad‑level numbers -->
       <div class="grid grid-cols-2 gap-4 text-sm">
         <template x-for="side in ['backend','frontend']">
           <label class="flex flex-col">
-            <span x-text="(side==='backend'?'Back':'Front')+'‑End (#eng)'"></span>
+            <span data-tip="Headcount in full-time equivalents; decimals allowed." x-text="side==='backend'?'Back-End #FTEs':'Front-End #FTEs'"></span>
             <input type="number" min="0" class="border rounded px-2 py-1"
                    x-model.number="cfg.engineers[side]" @input="safeRedraw">
           </label>
         </template>
         <template x-for="side in ['backend','frontend']">
           <label class="flex flex-col">
-            <span x-text="'Eff‑'+(side==='backend'?'BE':'FE')+' (%)'"></span>
+            <span data-tip="Efficiency Factor for the Back-End engineers: adjusts for availability, estimate error, and efficiency." x-text="side==='backend'?'BE Capacity %':'FE Capacity %'"></span>
             <input type="number" min="0" max="100" class="border rounded px-2 py-1"
                    x-model.number="cfg.efficiency[side]" @input="safeRedraw">
           </label>
         </template>
         <label class="flex flex-col col-span-2">
-          <span>Start date</span>
+          <span>Start Date</span>
           <input type="date" class="border rounded px-2 py-1"
                  x-model="cfg.startDate" @input="safeRedraw">
         </label>
@@ -61,39 +77,47 @@
       <table class="min-w-full text-xs mt-4">
         <thead class="bg-gray-100 text-gray-700">
           <tr class="h-10">
-            <th></th><th>Project</th><th>#Prio</th><th>EffBE</th><th>ConcBE</th>
-            <th>EffFE</th><th>ConcFE</th><th></th>
+            <th></th>
+            <th>Project</th>
+            <th data-tip="#Priority: 1 is highest priority; lower number schedules earlier.">#Priority</th>
+            <th data-tip="BE Effort (#Weeks): Eestimated effort of the Back-End side (end-to-end; incl. QA & release); decimals allowed.">BE Effort (#Weeks)</th>
+            <th data-tip="BE #Parallel: Max number of Back-End engineers who can progress this task in parallel.">BE #Parallel</th>
+            <th data-tip="FE Effort (#Weeks): Eestimated effort of the Front-End side (end-to-end; incl. QA & release); decimals allowed.">FE Effort (#Weeks)</th>
+            <th data-tip="FE #Parallel: Max number of Front-End engineers who can progress this task in parallel.">FE #Parallel</th>
+            <th></th>
           </tr>
         </thead>
         <tbody :id="`tbl-${squad}`" x-ref="tbl"
                x-init="Sortable.create($refs.tbl,{handle:'.grip',animation:150,onEnd:()=>drag(squad)})">
           <template x-for="p in cfg.projects" :key="p.id">
             <tr class="h-12" :data-id="p.id">
-              <td class="grip">≡</td>
-              <td><input class="w-48 border rounded px-1" x-model="p.name" @input="safeRedraw"></td>
+              <td class="grip" data-tip="Drag to reorder.">≡</td>
+              <td><input class="w-48 border rounded px-1" x-model="p.name" placeholder="Project or task" @input="safeRedraw"></td>
               <td><input type="number" min="1" class="w-14 border rounded px-1" x-model.number="p.priority" @input="safeRedraw"></td>
               <td><input type="number" min="0" step=".1" class="w-16 border rounded px-1" x-model.number="p.effort.backendWeeks" @input="safeRedraw"></td>
-              <td><input type="number" min="0" class="w-14 border rounded px-1" x-model.number="p.concurrency.backend" @input="safeRedraw"></td>
+              <td><input type="number" min="1" class="w-14 border rounded px-1" x-model.number="p.concurrency.backend" @input="safeRedraw"></td>
               <td><input type="number" min="0" step=".1" class="w-16 border rounded px-1" x-model.number="p.effort.frontendWeeks" @input="safeRedraw"></td>
-              <td><input type="number" min="0" class="w-14 border rounded px-1" x-model.number="p.concurrency.frontend" @input="safeRedraw"></td>
-              <td><button @click="remove(squad,p.id)">✕</button></td>
+              <td><input type="number" min="1" class="w-14 border rounded px-1" x-model.number="p.concurrency.frontend" @input="safeRedraw"></td>
+              <td><button @click="remove(squad,p.id)" data-tip="Delete this row.">✕</button></td>
             </tr>
           </template>
         </tbody>
       </table>
       <button @click="add(squad)"
-              class="mt-2 bg-emerald-600 text-white text-xs px-3 py-1 rounded">Add Project</button>
+              class="mt-2 bg-emerald-600 text-white text-xs px-3 py-1 rounded" title="Add a new project/task row">Add Project</button>
 
-      <p class="mt-3 text-xs text-gray-600" x-html="capacity[squad]"></p>
+      <p class="mt-3 text-xs text-gray-600" x-html="capacity[squad]" title="Idle engineer-weeks: aggregate unused capacity over the scheduled timeline"></p>
     </div>
   </template>
 </div>
 
+{% if is_admin %}
 <!-- SAVE -->
 <div class="mt-6">
-  <button @click="save()" class="bg-blue-600 text-white px-5 py-2 rounded">Save XML</button>
+  <button @click="save()" class="bg-blue-600 text-white px-5 py-2 rounded" title="Persist the current plan.">Save Plan</button>
   <span x-show="saved" x-transition class="text-green-700 ml-3">Saved!</span>
 </div>
+{% endif %}
 
 <!-- ═════════  GANTT  ═════════ -->
 <div class="bg-white border rounded shadow-sm p-5 mt-10 overflow-x-auto" x-show="header.length">
@@ -106,10 +130,10 @@
   </div>
   <template x-for="sq in Object.keys(data)" :key="sq">
     <div>
-      <h3 class="font-semibold mt-4" x-text="sq+' squad'"></h3>
+      <h3 class="font-semibold mt-4" x-text="({Alpha:'Alpha Squad (resources & backlog)', Bravo:'Bravo Squad (resources & backlog)'}[sq] || sq)"></h3>
       <template x-for="b in bars[sq]" :key="b.name">
         <div class="g-row border" :style="`width:${gWidth}px`">
-          <div class="bar" :class="b.cls"
+          <div class="bar" :class="b.cls" :title="b.name + ': ' + (b.width/32).toFixed(1) + ' days'"
                :style="`left:${b.left}px;width:${b.width}px`"
                x-text="b.name"></div>
         </div>
@@ -132,7 +156,7 @@ function app(){return{
       id:'id'+Date.now(), name:'New Project',
       priority:this.data[sq].projects.length+1,
       effort:{backendWeeks:0,frontendWeeks:0},
-      concurrency:{backend:0,frontend:0}
+      concurrency:{backend:1,frontend:1}
     });
     this.$nextTick(this.redraw);
   },
@@ -158,7 +182,7 @@ function app(){return{
         if(p.priority<1)   bad.push(`${p.name}: prio`);
         ['backend','frontend'].forEach(side=>{
           if(p.effort[`${side}Weeks`]<0) bad.push(`${p.name}: Eff ${side.slice(0,2).toUpperCase()}`);
-          if(p.concurrency[side]<0)      bad.push(`${p.name}: Con ${side.slice(0,2).toUpperCase()}`);
+          if(p.concurrency[side]<1)      bad.push(`${p.name}: Con ${side.slice(0,2).toUpperCase()}`);
         });
       });
     }
