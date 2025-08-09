@@ -1,116 +1,56 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resourceConfig>
   <squad name="Alpha">
-    <engineers backend="3.2" frontend="1.2" />
-    <efficiency backend="70" frontend="70" />
-    <startDate>2025-08-09</startDate>
+    <engineers backend="3" frontend="1.5" />
+    <efficiency backend="75" frontend="70" />
+    <startDate>2025-09-08</startDate>
     <projects>
-      <project id="alpha-neo-search" name="NeoSearch" priority="1">
-        <effort backendWeeks="1" frontendWeeks="0" />
+      <project id="alpha-onboarding-flow-refresh" name="Onboarding Flow Refresh" priority="1">
+        <effort backendWeeks="0.6" frontendWeeks="1.2" />
         <concurrency backend="1" frontend="1" />
       </project>
-      <project id="alpha-revoke-cs-danials-ticket" name="Take care of revoking CS (Danial's Ticket)" priority="2">
-        <effort backendWeeks="0.7" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-multicast-echo" name="Pharmacy Multi-cast (ECHO): Vendor Report, Highlighting missed requests, Expiration field" priority="3">
-        <effort backendWeeks="1.7" frontendWeeks="1.7" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-polygon-based-delivery-price" name="Pharmacy Polygon-based Delivery Price" priority="4">
-        <effort backendWeeks="0.3" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-in-store-with-snapppay" name="Pharmacy in-store with SnappPay" priority="5">
-        <effort backendWeeks="1.7" frontendWeeks="0.3" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-ivr-reminder-call-unpaid-invoices" name="Pharmacy IVR Reminder call for unpaid invoices" priority="6">
-        <effort backendWeeks="0.7" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-snappbox-number-masking" name="Pharmacy SnappBox Number Masking" priority="7">
-        <effort backendWeeks="1" frontendWeeks="0.7" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-enhance-vendor-support-ticket-process-support-panel" name="Enhance Vendor-Support Ticket Process in the Support Panel" priority="8">
-        <effort backendWeeks="2.7" frontendWeeks="1" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-ai-powered-ui" name="Pharmacy AI-Powered UI" priority="9">
-        <effort backendWeeks="1.8" frontendWeeks="1.4" />
+      <project id="alpha-search-relevance-tuning" name="Search Relevance Tuning" priority="2">
+        <effort backendWeeks="1.6" frontendWeeks="0.3" />
         <concurrency backend="2" frontend="1" />
       </project>
-      <project id="alpha-pharmacy-basket-filler-management-panel" name="Pharmacy Basket Filler management panel" priority="10">
-        <effort backendWeeks="1.4" frontendWeeks="1" />
+      <project id="alpha-notification-preferences" name="Notification Preferences" priority="3">
+        <effort backendWeeks="0.7" frontendWeeks="0.7" />
         <concurrency backend="1" frontend="1" />
       </project>
-      <project id="alpha-pharmacy-auto-deletion-3-months" name="Pharmacy auto deletion after 3 months (Disassociation Price_Details)" priority="11">
-        <effort backendWeeks="1" frontendWeeks="0" />
+      <project id="alpha-export-to-csv" name="Export to CSV" priority="4">
+        <effort backendWeeks="0.3" frontendWeeks="0.3" />
         <concurrency backend="1" frontend="1" />
       </project>
-      <project id="alpha-change-snappbox-token" name="Change Snapp!Box token" priority="12">
-        <effort backendWeeks="0.3" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="alpha-pharmacy-investigation-cr-from-reqsubmit-to-request-creation" name="[Pharmacy] [investigation] why do we have a CR% from ReqSubmit button to Request creation?" priority="13">
-        <effort backendWeeks="1.4" frontendWeeks="1" />
+      <project id="alpha-dark-mode" name="Dark Mode" priority="5">
+        <effort backendWeeks="0.1" frontendWeeks="1" />
         <concurrency backend="1" frontend="1" />
       </project>
     </projects>
   </squad>
   <squad name="Bravo">
-    <engineers backend="3.2" frontend="1.2" />
-    <efficiency backend="70" frontend="70" />
-    <startDate>2025-08-09</startDate>
+    <engineers backend="2.8" frontend="1.2" />
+    <efficiency backend="80" frontend="80" />
+    <startDate>2025-09-10</startDate>
     <projects>
-      <project id="bravo-pay-in-four-consultation-pharmacy" name="Pay in Four (both Consultation and Pharmacy)" priority="1">
-        <effort backendWeeks="1.4" frontendWeeks="0" />
+      <project id="bravo-subscriptions-billing-mvp" name="Subscriptions &amp; Billing (MVP)" priority="1">
+        <effort backendWeeks="2" frontendWeeks="0.6" />
+        <concurrency backend="2" frontend="1" />
+      </project>
+      <project id="bravo-feedback-widget" name="In-App Feedback Widget" priority="2">
+        <effort backendWeeks="0.2" frontendWeeks="0.8" />
         <concurrency backend="1" frontend="1" />
       </project>
-      <project id="bravo-delete-account-superapp" name="Delete Account via Superapp" priority="2">
-        <effort backendWeeks="0.7" frontendWeeks="0" />
+      <project id="bravo-audit-logs" name="Audit Logs" priority="3">
+        <effort backendWeeks="1.2" frontendWeeks="0.2" />
         <concurrency backend="1" frontend="1" />
       </project>
-      <project id="bravo-quick-consult-logic-revise-plp" name="Quick Consult Logic revise in PLP" priority="3">
+      <project id="bravo-performance-dashboards" name="Magic Link Login" priority="4">
         <effort backendWeeks="1" frontendWeeks="1" />
         <concurrency backend="1" frontend="1" />
       </project>
-      <project id="bravo-disabling-users-insert-comment-rate-not-fulfilled-orders" name="Disabling users to insert comment and rate for not fulfilled orders" priority="4">
-        <effort backendWeeks="0.3" frontendWeeks="0.3" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-ivr-log" name="IVR Log" priority="5">
-        <effort backendWeeks="0.3" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-enabling-tsr-scheduled-appointment-video-call" name="Enabling TSR (scheduled appointment) for Video call" priority="6">
-        <effort backendWeeks="4.8" frontendWeeks="2.4" />
+      <project id="bravo-magic-link-login" name="Performance Dashboards" priority="5">
+        <effort backendWeeks="3" frontendWeeks="3" />
         <concurrency backend="2" frontend="1" />
-      </project>
-      <project id="bravo-text-assignment-no-answer-experts" name="Text Assignment → No answer Experts" priority="7">
-        <effort backendWeeks="0.7" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-video-call-voucher-segregation" name="Video Call Voucher Segregation" priority="8">
-        <effort backendWeeks="2.4" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-expert-performance-report" name="Expert Performance Report" priority="9">
-        <effort backendWeeks="0.7" frontendWeeks="1" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-integrating-new-ipg-ap" name="Integrating a new IPG (AP)" priority="10">
-        <effort backendWeeks="2.4" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-web-app-jek-ads-separation-funnel" name="Web/App/Jek/Ads Separation funnel" priority="11">
-        <effort backendWeeks="1.4" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
-      </project>
-      <project id="bravo-bug-bale-bot-issue-vpn-enabled" name="[Bug] BALE Bot issue while VPN is enabled" priority="12">
-        <effort backendWeeks="0.3" frontendWeeks="0" />
-        <concurrency backend="1" frontend="1" />
       </project>
     </projects>
   </squad>

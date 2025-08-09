@@ -188,11 +188,3 @@ def healthz():
         "is_dir": is_dir,
         "size": size,
     })
-
-@app.get("/data_raw")
-def data_raw():
-    # no auth, just serve the exact XML file for isolation
-    p = Path(CONFIG_PATH)
-    xml = p.read_text(encoding="utf-8")
-    print(f"[data_raw] served {p} ({len(xml)} bytes)")
-    return Response(xml, media_type="application/xml")
