@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from jinja2 import Environment, FileSystemLoader
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
@@ -128,3 +128,9 @@ def data(user: str = Depends(login_required)):
 async def save(req: Request, user: str = Depends(admin_required)):
     save_cfg(await req.json())
     return {"status": "ok"}
+
+# ─── Export XML ──────────────────────────────────────────────────────
+@app.get("/export")
+def export_xml(user: str = Depends(login_required)):
+    """Return the current XML config for download/viewing."""
+    return FileResponse(CONFIG_PATH, media_type="application/xml", filename=CONFIG_PATH.name)

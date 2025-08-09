@@ -146,5 +146,5 @@ MIT License — see [LICENSE](LICENSE).
 ## 🤝 Contributing & Credits
 PRs and issues are welcome. Please keep changes minimal and fork-friendly—no secrets in code, no vendor lock-ins.
 
-**Credits:** Built by Seyed **Hamed Shams** for internal planning; open-sourced so other teams can fork, deploy, and adapt quickly.  
+**Credits:** Built by Seyed **Hamed Shams** (Lead PM at SnappDoctor) for internal planning; open-sourced so other teams can fork, deploy, and adapt quickly.  
 **Website:** <https://HamedShams.com>

@@ -67,7 +67,7 @@
           </label>
         </template>
         <label class="flex flex-col col-span-2">
-          <span>Start Date</span>
+          <span data-tip="Weekend: Thu & Fri (Persian calendar)">Start Date</span>
           <input type="date" class="border rounded px-2 py-1"
                  x-model="cfg.startDate" @input="safeRedraw">
         </label>
@@ -116,6 +116,7 @@
 <div class="mt-6">
   <button @click="save()" class="bg-blue-600 text-white px-5 py-2 rounded" title="Persist the current plan.">Save Plan</button>
   <span x-show="saved" x-transition class="text-green-700 ml-3">Saved!</span>
+  <a href="/export" target="_blank" class="ml-4 bg-slate-600 text-white px-4 py-2 rounded" title="Download the latest plan as XML.">Export XML</a>
 </div>
 {% endif %}
 
