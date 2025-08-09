@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse, Response, PlainTextResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse, Response, PlainTextResponse
 from jinja2 import Environment, FileSystemLoader
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
@@ -172,3 +172,27 @@ async def save(req: Request, user: str = Depends(admin_required)):
 def export_xml(user: str = Depends(login_required)):
     """Return the current XML config for download/viewing."""
     return FileResponse(CONFIG_PATH, media_type="application/xml", filename=CONFIG_PATH.name)
+
+@app.get("/healthz")
+def healthz():
+    p = Path(CONFIG_PATH)
+    exists = p.exists()
+    is_dir = p.is_dir()
+    size = (p.stat().st_size if exists and not is_dir else None)
+    print(f"[healthz] path={p} exists={exists} is_dir={is_dir} size={size}")
+    return JSONResponse({
+        "ok": True,
+        "port": os.getenv("PORT"),
+        "config_path": str(p),
+        "exists": exists,
+        "is_dir": is_dir,
+        "size": size,
+    })
+
+@app.get("/data_raw")
+def data_raw():
+    # no auth, just serve the exact XML file for isolation
+    p = Path(CONFIG_PATH)
+    xml = p.read_text(encoding="utf-8")
+    print(f"[data_raw] served {p} ({len(xml)} bytes)")
+    return Response(xml, media_type="application/xml")
